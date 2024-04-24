@@ -7,20 +7,79 @@
 		Button,
 		Tabbar,
 		TabbarLink,
+		NavbarBackLink,
 		Icon,
+		List,
+		ListItem,
 		Link,
 		Fab,
+		Popup,
+		Searchbar,
 	} from "konsta/svelte";
+
+	import DataJson from "./data.json";
+
 	import MdEmail from "../icons/MdEmail.svelte";
 	import MdSettings from "../icons/MdSettings.svelte";
-	import MdHome from "../icons/MdHome.svelte";
 	import MdSearch from "../icons/MdSearch.svelte";
+	import MdPhone from "../icons/MdPhone.svelte";
 	import MainBanner from "../images/main_banner.jpg";
 	import ContactBanner from "../images/contact_banner.jpg";
 
-	let activeTab = "tab-1";
-	let isTabbarLabels = true;
-	let isTabbarIcons = true;
+	let mainSections = [
+		"المقدمة",
+		"مسائل",
+		"محرمات الإحرام",
+		"محرمات الحرم",
+		"أحكام الكفارة",
+		"عمرة التمتع",
+		"حج التمتع",
+		"الإعلانات",
+	];
+	let popupOpened = false;
+	let searchQuery = "";
+	let items = [
+		{ title: "FC Ajax" },
+		{ title: "FC Arsenal" },
+		{ title: "FC Athletic" },
+		{ title: "FC Barcelona" },
+		{ title: "FC Bayern München" },
+		{ title: "FC Bordeaux" },
+		{ title: "FC Borussia Dortmund" },
+		{ title: "FC Chelsea" },
+		{ title: "FC Galatasaray" },
+		{ title: "FC Juventus" },
+		{ title: "FC Liverpool" },
+		{ title: "FC Manchester City" },
+		{ title: "FC Manchester United" },
+		{ title: "FC Paris Saint-Germain" },
+		{ title: "FC Real Madrid" },
+		{ title: "FC Tottenham Hotspur" },
+		{ title: "FC Valencia" },
+		{ title: "FC West Ham United" },
+	];
+
+	function handleSearch(e) {
+		searchQuery = e.target.value;
+	}
+
+	function handleClear() {
+		searchQuery = "";
+	}
+
+	function handleDisable() {
+		console.log("Disable");
+	}
+
+	let filteredItems = [];
+	/* eslint-disable */
+	$: {
+		filteredItems = searchQuery
+			? items.filter((item) =>
+					item.title.toLowerCase().includes(searchQuery.toLowerCase()),
+				)
+			: items;
+	}
 </script>
 
 <svelte:head>
@@ -28,52 +87,68 @@
 </svelte:head>
 
 <Page>
-	<Navbar>
-		<Link slot="right" navbar
-			><Icon>
-				<MdSettings slot="material" class="w-6 h-6" />
-			</Icon></Link
-		>
-	</Navbar>
-	<Fab class="fixed right-4-safe bottom-4-safe z-20">
+	<Fab
+		onClick={() => (popupOpened = true)}
+		class="fixed right-4-safe bottom-4-safe z-20"
+	>
 		<svelte:component this={MdSearch} slot="icon" />
 	</Fab>
-	<!-- <Tabbar labels="true" icons="true" class="left-0 bottom-0 fixed">
-		<TabbarLink
-			active={activeTab === "tab-1"}
-			onClick={() => (activeTab = "tab-1")}
-			label="الصفحة الرئيسية"
-		>
-			<svelte:fragment slot="icon">
-				<Icon>
-					<MdHome
-						selected={activeTab === "tab-1"}
-						slot="material"
-						class="w-6 h-6"
-					/>
-				</Icon>
-			</svelte:fragment>
-		</TabbarLink>
-		<TabbarLink
-			active={activeTab === "tab-2"}
-			onClick={() => (activeTab = "tab-2")}
-			label="البحث"
-		>
-			<svelte:fragment slot="icon">
-				<Icon>
-					<MdSearch slot="material" class="w-6 h-6" />
-				</Icon>
-			</svelte:fragment>
-		</TabbarLink>
-	</Tabbar> -->
 	<div class="relative">
+		<Link class="absolute top-0 right-0 p-4" href="#settings">
+			<Icon>
+				<MdSettings slot="material" class="w-6 h-6" />
+			</Icon>
+		</Link>
+
 		<img src={MainBanner} alt="Main Banner" />
-		<img src={ContactBanner} alt="Main Banner" />
+	</div>
+	<div class="relative">
+		<Link class="absolute top-0 left-0 p-2" href="https://wa.me/+966506906007">
+			<Icon>
+				<MdEmail slot="material" class="w-6 h-6" />
+			</Icon>
+		</Link>
+		<img src={ContactBanner} alt="Contact Banner" />
+		<Link class="absolute top-0 right-0 p-2">
+			<Icon>
+				<MdPhone slot="material" class="w-6 h-6" />
+			</Icon>
+		</Link>
 	</div>
 
-	<div class="p-4 grid gap-x-4 gap-y-2 grid-cols-2 rtl:space-x-reverse">
-		{#each [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as item}
-			<Button outline><h1>{item}</h1></Button>
+	<div
+		dir="rtl"
+		class="p-4 grid gap-x-4 gap-y-2 grid-cols-2 rtl:space-x-reverse"
+	>
+		{#each mainSections as section}
+			<Button outline><h1>{section}</h1></Button>
 		{/each}
 	</div>
+
+	<Popup opened={popupOpened} onBackdropClick={() => (popupOpened = false)}>
+		<Page>
+			<Navbar title="Searchbar">
+				<Searchbar
+					slot="subnavbar"
+					onInput={handleSearch}
+					value={searchQuery}
+					onClear={handleClear}
+					disableButton
+					disableButtonText="Cancel"
+					onDisable={handleDisable}
+				/>
+				<Link slot="right" navbar onClick={() => (popupOpened = false)}>
+					Close
+				</Link>
+			</Navbar>
+			<List strong insetMaterial outlineIos>
+				{#if filteredItems.length === 0}
+					<ListItem title="Nothing found" />
+				{/if}
+				{#each filteredItems as item (item.title)}
+					<ListItem key={item.title} title={item.title} />
+				{/each}
+			</List>
+		</Page>
+	</Popup>
 </Page>
